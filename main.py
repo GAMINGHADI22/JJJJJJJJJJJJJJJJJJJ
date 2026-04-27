@@ -17,16 +17,17 @@ FAST_OPTS = {
 # 🚀 START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "╔════════════════════╗\n"
-        "   💜 ADMIN RAHMAN BOT 💜\n"
-        "╚════════════════════╝\n\n"
-        "🎬 YouTube + TikTok Downloader\n"
-        "🎧 MP3 Audio Support\n"
-        "🚀 Fast Mode Active\n"
-        "✨ Clean Premium UI\n\n"
-        "📎 Send your video link now 👇"
+        "╭━━━〔 💜✨⚡ 𝗔𝗗𝗠𝗜𝗡 𝗥𝗔𝗛𝗠𝗔𝗡 𝗕𝗢𝗧 ⚡✨💜 〕━━━╮\n"
+        "┃                                      ┃\n"
+        "┃   🌌 𝗡𝗘𝗢𝗡 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗥             ┃\n"
+        "┃   🎬 𝗬𝗼𝘂𝗧𝘂𝗯𝗲 + 𝗧𝗶𝗸𝗧𝗼𝗸 𝗗𝗟        ┃\n"
+        "┃   🎧 𝗠𝗣𝟯 𝗔𝘂𝗱𝗶𝗼 𝗦𝘂𝗽𝗽𝗼𝗿𝘁          ┃\n"
+        "┃   🚀 𝗨𝗹𝘁𝗿𝗮 𝗙𝗮𝘀𝘁 𝗠𝗼𝗱𝗲            ┃\n"
+        "┃   ✨ 𝗣𝗿𝗲𝗺𝗶𝘂𝗺 𝗡𝗲𝗼𝗻 𝗨𝗜            ┃\n"
+        "┃                                      ┃\n"
+        "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n"
+        "💜 𝗗𝗿𝗼𝗽 𝘆𝗼𝘂𝗿 𝘃𝗶𝗱𝗲𝗼 𝗹𝗶𝗻𝗸 👇"
     )
-
 # 🔍 LINK HANDLER
 async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()

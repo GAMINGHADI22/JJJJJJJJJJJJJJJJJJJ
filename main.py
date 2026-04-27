@@ -139,12 +139,27 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.edit_text("💜 Sending...")
 
         if choice == "mp3":
-            file = file.replace(".webm", ".mp3").replace(".m4a", ".mp3")
-            with open(file, "rb") as f:
-                await q.message.reply_audio(audio=f, caption="💜 Done")
-        else:
-            with open(file, "rb") as f:
-                await q.message.reply_video(video=f, caption="💜 Done")
+    with open(file, "rb") as f:
+        await q.message.reply_audio(
+            audio=f,
+            caption=(
+                "╭━━━〔 🎧 𝗔𝗨𝗗𝗜𝗢 𝗥𝗘𝗔𝗗𝗬 〕━━━╮\n"
+                "┃ 💜 Powered by ADMIN RAHMAN BOT\n"
+                "┃ 🎵 Your MP3 is ready\n"
+                "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
+            )
+        )
+else:
+    with open(file, "rb") as f:
+        await q.message.reply_video(
+            video=f,
+            caption=(
+                "╭━━━〔 ✅ 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗 𝗖𝗢𝗠𝗣𝗟𝗘𝗧𝗘 〕━━━╮\n"
+                "┃ 💜 Powered by ADMIN RAHMAN BOT\n"
+                "┃ 🎬 Your video is ready\n"
+                "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
+            )
+        )
 
         os.remove(file)
         await msg.delete()

@@ -1,4 +1,5 @@
 import os
+import asyncio
 import yt_dlp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
@@ -14,21 +15,39 @@ FAST_OPTS = {
     "socket_timeout": 20,
 }
 
-# 🚀 START
+# 💜 START WITH ANIMATION
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "╭━━━〔 💜✨⚡ 𝗔𝗗𝗠𝗜𝗡 𝗥𝗔𝗛𝗠𝗔𝗡 𝗕𝗢𝗧 ⚡✨💜 〕━━━╮\n"
-        "┃                                      ┃\n"
-        "┃   🌌 𝗡𝗘𝗢𝗡 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗥             ┃\n"
-        "┃   🎬 𝗬𝗼𝘂𝗧𝘂𝗯𝗲 + 𝗧𝗶𝗸𝗧𝗼𝗸 𝗗𝗟        ┃\n"
-        "┃   🎧 𝗠𝗣𝟯 𝗔𝘂𝗱𝗶𝗼 𝗦𝘂𝗽𝗽𝗼𝗿𝘁          ┃\n"
-        "┃   🚀 𝗨𝗹𝘁𝗿𝗮 𝗙𝗮𝘀𝘁 𝗠𝗼𝗱𝗲            ┃\n"
-        "┃   ✨ 𝗣𝗿𝗲𝗺𝗶𝘂𝗺 𝗡𝗲𝗼𝗻 𝗨𝗜            ┃\n"
-        "┃                                      ┃\n"
-        "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n"
-        "💜 𝗗𝗿𝗼𝗽 𝘆𝗼𝘂𝗿 𝘃𝗶𝗱𝗲𝗼 𝗹𝗶𝗻𝗸 👇"
+    msg = await update.message.reply_text("⚡ Initializing bot...")
+
+    texts = [
+        "⚡ Initializing bot.",
+        "⚡ Initializing bot..",
+        "⚡ Initializing bot...",
+        "💜 Loading interface...",
+        "💜 Almost ready..."
+    ]
+
+    for t in texts:
+        await asyncio.sleep(0.5)
+        await msg.edit_text(t)
+
+    await asyncio.sleep(0.5)
+    await msg.edit_text(
+        "╔══════════════════════════════╗\n"
+        "║ 💜✨⚡ 𝗔𝗗𝗠𝗜𝗡 𝗥𝗔𝗛𝗠𝗔𝗡 𝗕𝗢𝗧 ⚡✨💜 ║\n"
+        "╠══════════════════════════════╣\n"
+        "║ 🌌 𝗡𝗘𝗢𝗡 𝗩𝗜𝗗𝗘𝗢 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗥      ║\n"
+        "║ 🎬 YouTube • TikTok Supported ║\n"
+        "║ 🎧 MP3 Audio • HD Quality     ║\n"
+        "║ 🚀 Ultra Fast Engine Active   ║\n"
+        "║ 🔮 Status: ONLINE • READY     ║\n"
+        "╚══════════════════════════════╝\n\n"
+        "💎 Smart Bot Ready!\n"
+        "━━━━━━━━━━━━━━━━━━━━━━\n"
+        "📎 Send your video link now 👇"
     )
-# 🔍 LINK HANDLER
+
+# 🔍 LINK HANDLER (WITH PREVIEW)
 async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
 
@@ -38,27 +57,58 @@ async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data["url"] = url
 
-    buttons = [
-        [
-            InlineKeyboardButton("💎 Full HD 1080p", callback_data="1080"),
-            InlineKeyboardButton("⚡ HD 720p", callback_data="720")
-        ],
-        [
-            InlineKeyboardButton("📱 Lite 360p", callback_data="360"),
-            InlineKeyboardButton("🎧 Audio MP3", callback_data="mp3")
+    loading = await update.message.reply_text("🔍 Scanning link...")
+    await loading.edit_text("🔍 Scanning link.")
+    await loading.edit_text("🔍 Scanning link..")
+    await loading.edit_text("🔍 Scanning link...")
+
+    try:
+        with yt_dlp.YoutubeDL(FAST_OPTS) as ydl:
+            data = ydl.extract_info(url, download=False)
+
+        title = data.get("title", "Unknown Title")
+        duration = data.get("duration", 0)
+        thumbnail = data.get("thumbnail")
+
+        minutes = duration // 60
+        seconds = duration % 60
+
+        buttons = [
+            [
+                InlineKeyboardButton("💎 1080p", callback_data="1080"),
+                InlineKeyboardButton("⚡ 720p", callback_data="720")
+            ],
+            [
+                InlineKeyboardButton("📱 360p", callback_data="360"),
+                InlineKeyboardButton("🎧 MP3", callback_data="mp3")
+            ]
         ]
-    ]
 
-    await update.message.reply_text(
-        "╭━━━━━━━◇◆◇━━━━━━━╮\n"
-        "      ✅ LINK DETECTED\n"
-        "╰━━━━━━━◇◆◇━━━━━━━╯\n\n"
-        "🎥 Video is ready to process\n"
-        "💜 Select your format below 👇",
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
+        caption = (
+            "╭━━━〔 💜 VIDEO PREVIEW 💜 〕━━━╮\n"
+            f"🎬 {title[:40]}\n"
+            f"⏱ {minutes}:{seconds:02d}\n\n"
+            "⚡ Choose your format 👇"
+        )
 
-# ⚙️ BUTTON HANDLER
+        await loading.delete()
+
+        if thumbnail:
+            await update.message.reply_photo(
+                photo=thumbnail,
+                caption=caption,
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+        else:
+            await update.message.reply_text(
+                caption,
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+
+    except Exception as e:
+        await loading.edit_text("❌ Preview load failed")
+
+# ⚙️ DOWNLOAD HANDLER
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -67,11 +117,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     choice = q.data
 
     msg = await q.message.reply_text(
-        "╭──────────────╮\n"
-        "   🚀 PROCESSING\n"
-        "╰──────────────╯\n\n"
-        "⏳ Download starting...\n"
-        "📊 Please wait a moment"
+        "🚀 Processing...\n⏳ Please wait..."
     )
 
     try:
@@ -103,29 +149,21 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             data = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(data)
 
-        await msg.edit_text(
-            "╭──────────────╮\n"
-            "   📤 SENDING\n"
-            "╰──────────────╯\n\n"
-            "✅ Almost done..."
-        )
+        await msg.edit_text("📤 Sending file...")
 
         if choice == "mp3":
             file_path = file_path.replace(".webm", ".mp3").replace(".m4a", ".mp3")
-            with open(file_path, "rb") as audio:
-                await q.message.reply_audio(audio=audio, caption="🎧 MP3 Ready")
+            with open(file_path, "rb") as f:
+                await q.message.reply_audio(audio=f)
         else:
-            with open(file_path, "rb") as video:
-                await q.message.reply_video(
-                    video=video,
-                    caption="✅ Done by ADMIN RAHMAN BOT"
-                )
+            with open(file_path, "rb") as f:
+                await q.message.reply_video(video=f)
 
         os.remove(file_path)
         await msg.delete()
 
     except Exception as e:
-        await msg.edit_text("❌ Download failed\n\n" + str(e)[:200])
+        await msg.edit_text("❌ Download failed")
 
 # 🚀 RUN
 def main():
@@ -135,7 +173,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, link_handler))
     app.add_handler(CallbackQueryHandler(button_handler))
 
-    print("🔥 UI Bot Running...")
+    print("🔥 Bot Running...")
     app.run_polling()
 
 if __name__ == "__main__":

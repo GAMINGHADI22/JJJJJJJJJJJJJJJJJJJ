@@ -1,140 +1,128 @@
-import os, time
+import os
 import yt_dlp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 BOT_TOKEN = os.getenv("8566117526:AAHgkoF74JChfn9LFYiwd32LZrhKPD9OW3Q", "8566117526:AAHgkoF74JChfn9LFYiwd32LZrhKPD9OW3Q")
-ADMIN = "@ABDUR9X"
 
-premium_users = {}  # user_id : expiry_timestamp
+FAST_OPTS = {
+    "quiet": True,
+    "no_warnings": True,
+    "concurrent_fragment_downloads": 16,
+    "retries": 10,
+    "fragment_retries": 10,
+    "socket_timeout": 20,
+}
 
-# 🕒 CHECK PREMIUM
-def is_premium(user_id):
-    if user_id in premium_users:
-        if time.time() < premium_users[user_id]:
-            return True
-        else:
-            del premium_users[user_id]
-    return False
-
-# 🚀 START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "💜⚡ ADMIN RAHMAN 𝗕𝗢𝗧 ⚡💜\n\n"
-        "🎬 Downloader Bot\n"
-        "👉 Premium: /premium\n"
-        "📎 Send link"
+        "╔═══════◇◆◇═══════╗\n"
+        "   💜 ADMIN RAHMAN BOT\n"
+        "╚═══════◇◆◇═══════╝\n\n"
+        "🎬 YouTube + TikTok Downloader\n"
+        "🎧 MP3 Audio Supported\n"
+        "🚀 Fast Download Enabled\n\n"
+        "📎 Send your video link 👇"
     )
 
-# 👑 PREMIUM INFO
-async def premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    uid = update.effective_user.id
-    await update.message.reply_text(
-        "👑 PREMIUM PLAN\n\n"
-        "💎 1080p + 720p Unlock\n"
-        "⚡ Fast Download\n\n"
-        "💰 Price: 100৳ / 30 Days\n\n"
-        "📱 Payment:\n"
-        "bKash/Nagad: 01XXXXXXXXX\n\n"
-        f"🆔 ID: {uid}\n\n"
-        "📸 Payment screenshot পাঠাও\n"
-        "Admin: @ABDUR9X"
-    )
-
-# 🆔 MY ID
-async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"🆔 {update.effective_user.id}")
-
-# 👑 ADD PREMIUM (30 days)
-async def addpremium(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.username != ADMIN:
-        return
-
-    try:
-        uid = int(context.args[0])
-        premium_users[uid] = time.time() + (30 * 24 * 60 * 60)
-        await update.message.reply_text("✅ Premium added (30 days)")
-    except:
-        await update.message.reply_text("❌ Error")
-
-# ❌ REMOVE
-async def removepremium(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.username != ADMIN:
-        return
-
-    try:
-        uid = int(context.args[0])
-        premium_users.pop(uid, None)
-        await update.message.reply_text("❌ Removed")
-    except:
-        pass
-
-# 🔍 LINK
 async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = update.message.text
+    url = update.message.text.strip()
+
+    if not ("youtube.com" in url or "youtu.be" in url or "tiktok.com" in url):
+        await update.message.reply_text("❌ YouTube/TikTok link পাঠাও")
+        return
+
     context.user_data["url"] = url
 
     buttons = [
-        [InlineKeyboardButton("💜 1080p", callback_data="1080")],
-        [InlineKeyboardButton("⚡ 720p", callback_data="720")],
-        [InlineKeyboardButton("📱 360p", callback_data="360")],
-        [InlineKeyboardButton("🎧 MP3", callback_data="mp3")]
+        [
+            InlineKeyboardButton("💎 1080p", callback_data="1080"),
+            InlineKeyboardButton("⚡ 720p", callback_data="720")
+        ],
+        [
+            InlineKeyboardButton("📱 360p", callback_data="360"),
+            InlineKeyboardButton("🎧 MP3", callback_data="mp3")
+        ]
     ]
 
     await update.message.reply_text(
-        "💜 Select quality",
+        "╭━━━━━━━◇◆◇━━━━━━━╮\n"
+        "   🎬 DOWNLOAD READY\n"
+        "╰━━━━━━━◇◆◇━━━━━━━╯\n\n"
+        "💜 Choose your format below 👇",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
-# ⚙️ DOWNLOAD
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
 
-    uid = q.from_user.id
-    choice = q.data
     url = context.user_data.get("url")
+    choice = q.data
 
-    # 🔒 PREMIUM LOCK
-    if choice in ["1080","720"] and not is_premium(uid):
-        await q.message.reply_text(
-            "👑 Premium Required\nUse /premium"
-        )
-        return
-
-    msg = await q.message.reply_text("⏳ Downloading...")
+    msg = await q.message.reply_text(
+        "╭──────────────╮\n"
+        "   🚀 DOWNLOADING\n"
+        "╰──────────────╯\n\n"
+        "📊 Please wait..."
+    )
 
     try:
-        ydl_opts = {"format": "best"}
+        base_opts = {
+            "outtmpl": "downloads/%(id)s.%(ext)s",
+            "noplaylist": True,
+            **FAST_OPTS
+        }
+
+        if choice == "mp3":
+            ydl_opts = {
+                **base_opts,
+                "format": "bestaudio/best",
+                "postprocessors": [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                }],
+            }
+        elif choice == "1080":
+            ydl_opts = {**base_opts, "format": "bestvideo[height<=1080]+bestaudio/best"}
+        elif choice == "720":
+            ydl_opts = {**base_opts, "format": "bestvideo[height<=720]+bestaudio/best"}
+        else:
+            ydl_opts = {**base_opts, "format": "bestvideo[height<=360]+bestaudio/best"}
+
+        os.makedirs("downloads", exist_ok=True)
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             data = ydl.extract_info(url, download=True)
-            file = ydl.prepare_filename(data)
+            file_path = ydl.prepare_filename(data)
 
-        with open(file, "rb") as f:
-            if choice == "mp3":
-                await q.message.reply_audio(f)
-            else:
-                await q.message.reply_video(f)
+        await msg.edit_text(
+            "╭──────────────╮\n"
+            "   📤 SENDING\n"
+            "╰──────────────╯\n\n"
+            "✅ Almost done..."
+        )
 
-        os.remove(file)
+        if choice == "mp3":
+            file_path = file_path.replace(".webm", ".mp3").replace(".m4a", ".mp3")
+            with open(file_path, "rb") as audio:
+                await q.message.reply_audio(audio=audio, caption="🎧 MP3 Ready")
+        else:
+            with open(file_path, "rb") as video:
+                await q.message.reply_video(video=video, caption="✅ Download Complete")
+
+        os.remove(file_path)
         await msg.delete()
 
-    except:
-        await msg.edit_text("❌ Failed")
+    except Exception as e:
+        await msg.edit_text("❌ Download failed\n\n" + str(e)[:200])
 
-# 🚀 RUN
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
-
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("premium", premium))
-    app.add_handler(CommandHandler("myid", myid))
-    app.add_handler(CommandHandler("addpremium", addpremium))
-    app.add_handler(CommandHandler("removepremium", removepremium))
-
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, link_handler))
     app.add_handler(CallbackQueryHandler(button_handler))
-
+    print("🔥 Bot Running...")
     app.run_polling()
 
 if __name__ == "__main__":

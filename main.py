@@ -14,45 +14,50 @@ FAST_OPTS = {
     "socket_timeout": 20,
 }
 
+# 🚀 START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "╔═══════◇◆◇═══════╗\n"
-        "   💜 ADMIN RAHMAN BOT\n"
-        "╚═══════◇◆◇═══════╝\n\n"
+        "╔════════════════════╗\n"
+        "   💜 ADMIN RAHMAN BOT 💜\n"
+        "╚════════════════════╝\n\n"
         "🎬 YouTube + TikTok Downloader\n"
-        "🎧 MP3 Audio Supported\n"
-        "🚀 Fast Download Enabled\n\n"
-        "📎 Send your video link 👇"
+        "🎧 MP3 Audio Support\n"
+        "🚀 Fast Mode Active\n"
+        "✨ Clean Premium UI\n\n"
+        "📎 Send your video link now 👇"
     )
 
+# 🔍 LINK HANDLER
 async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
 
     if not ("youtube.com" in url or "youtu.be" in url or "tiktok.com" in url):
-        await update.message.reply_text("❌ YouTube/TikTok link পাঠাও")
+        await update.message.reply_text("❌ Valid YouTube/TikTok link পাঠাও")
         return
 
     context.user_data["url"] = url
 
     buttons = [
         [
-            InlineKeyboardButton("💎 1080p", callback_data="1080"),
-            InlineKeyboardButton("⚡ 720p", callback_data="720")
+            InlineKeyboardButton("💎 Full HD 1080p", callback_data="1080"),
+            InlineKeyboardButton("⚡ HD 720p", callback_data="720")
         ],
         [
-            InlineKeyboardButton("📱 360p", callback_data="360"),
-            InlineKeyboardButton("🎧 MP3", callback_data="mp3")
+            InlineKeyboardButton("📱 Lite 360p", callback_data="360"),
+            InlineKeyboardButton("🎧 Audio MP3", callback_data="mp3")
         ]
     ]
 
     await update.message.reply_text(
         "╭━━━━━━━◇◆◇━━━━━━━╮\n"
-        "   🎬 DOWNLOAD READY\n"
+        "      ✅ LINK DETECTED\n"
         "╰━━━━━━━◇◆◇━━━━━━━╯\n\n"
-        "💜 Choose your format below 👇",
+        "🎥 Video is ready to process\n"
+        "💜 Select your format below 👇",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
+# ⚙️ BUTTON HANDLER
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -62,12 +67,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     msg = await q.message.reply_text(
         "╭──────────────╮\n"
-        "   🚀 DOWNLOADING\n"
+        "   🚀 PROCESSING\n"
         "╰──────────────╯\n\n"
-        "📊 Please wait..."
+        "⏳ Download starting...\n"
+        "📊 Please wait a moment"
     )
 
     try:
+        os.makedirs("downloads", exist_ok=True)
+
         base_opts = {
             "outtmpl": "downloads/%(id)s.%(ext)s",
             "noplaylist": True,
@@ -90,8 +98,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             ydl_opts = {**base_opts, "format": "bestvideo[height<=360]+bestaudio/best"}
 
-        os.makedirs("downloads", exist_ok=True)
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             data = ydl.extract_info(url, download=True)
             file_path = ydl.prepare_filename(data)
@@ -109,7 +115,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await q.message.reply_audio(audio=audio, caption="🎧 MP3 Ready")
         else:
             with open(file_path, "rb") as video:
-                await q.message.reply_video(video=video, caption="✅ Download Complete")
+                await q.message.reply_video(
+                    video=video,
+                    caption="✅ Done by ADMIN RAHMAN BOT"
+                )
 
         os.remove(file_path)
         await msg.delete()
@@ -117,12 +126,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await msg.edit_text("❌ Download failed\n\n" + str(e)[:200])
 
+# 🚀 RUN
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, link_handler))
     app.add_handler(CallbackQueryHandler(button_handler))
-    print("🔥 Bot Running...")
+
+    print("🔥 UI Bot Running...")
     app.run_polling()
 
 if __name__ == "__main__":

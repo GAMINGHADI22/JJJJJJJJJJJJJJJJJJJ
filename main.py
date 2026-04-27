@@ -15,7 +15,6 @@ FAST_OPTS = {
     "socket_timeout": 20,
 }
 
-# 💜 NEON START
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text("💜 Initializing...")
 
@@ -35,12 +34,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "💜 Send your video link 👇"
     )
 
-# 🔍 LINK HANDLER
 async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
 
     if not ("youtube.com" in url or "youtu.be" in url or "tiktok.com" in url):
-        await update.message.reply_text("❌ Invalid link")
+        await update.message.reply_text("❌ Valid YouTube/TikTok link পাঠাও")
         return
 
     context.user_data["url"] = url
@@ -94,10 +92,9 @@ async def link_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=InlineKeyboardMarkup(buttons)
             )
 
-    except:
-        await msg.edit_text("❌ Failed to load preview")
+    except Exception as e:
+        await msg.edit_text("❌ Failed to load preview\n\n" + str(e)[:150])
 
-# ⚙️ DOWNLOAD
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -105,7 +102,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = context.user_data.get("url")
     choice = q.data
 
-    msg = await q.message.reply_text("💜 Processing...")
+    msg = await q.message.reply_text("🚀 Starting download...")
+
+    progress_steps = [
+        "📥 Downloading... 10%\n🟪⬛⬛⬛⬛⬛⬛⬛⬛⬛",
+        "📥 Downloading... 30%\n🟪🟪🟪⬛⬛⬛⬛⬛⬛⬛",
+        "📥 Downloading... 50%\n🟪🟪🟪🟪🟪⬛⬛⬛⬛⬛",
+        "📥 Downloading... 70%\n🟪🟪🟪🟪🟪🟪🟪⬛⬛⬛",
+        "📥 Downloading... 90%\n🟪🟪🟪🟪🟪🟪🟪🟪🟪⬛",
+        "📥 Downloading... 100%\n🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪"
+    ]
+
+    for step in progress_steps:
+        await asyncio.sleep(0.4)
+        await msg.edit_text(step)
 
     try:
         os.makedirs("downloads", exist_ok=True)
@@ -136,38 +146,48 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             data = ydl.extract_info(url, download=True)
             file = ydl.prepare_filename(data)
 
-        await msg.edit_text("💜 Sending...")
+        await msg.edit_text(
+            "🔊 Preparing file...\n"
+            "🎶 Encoding...\n"
+            "⚡ Finalizing..."
+        )
+        await asyncio.sleep(1)
+
+        await msg.edit_text(
+            "📤 Sending...\n"
+            "💜 Please wait..."
+        )
 
         if choice == "mp3":
-    with open(file, "rb") as f:
-        await q.message.reply_audio(
-            audio=f,
-            caption=(
-                "╭━━━〔 🎧 𝗔𝗨𝗗𝗜𝗢 𝗥𝗘𝗔𝗗𝗬 〕━━━╮\n"
-                "┃ 💜 Powered by ADMIN RAHMAN BOT\n"
-                "┃ 🎵 Your MP3 is ready\n"
-                "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
-            )
-        )
-else:
-    with open(file, "rb") as f:
-        await q.message.reply_video(
-            video=f,
-            caption=(
-                "╭━━━〔 ✅ 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗 𝗖𝗢𝗠𝗣𝗟𝗘𝗧𝗘 〕━━━╮\n"
-                "┃ 💜 Powered by ADMIN RAHMAN BOT\n"
-                "┃ 🎬 Your video is ready\n"
-                "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
-            )
-        )
+            file = file.replace(".webm", ".mp3").replace(".m4a", ".mp3")
+            with open(file, "rb") as f:
+                await q.message.reply_audio(
+                    audio=f,
+                    caption=(
+                        "╭━━━〔 🎧 𝗔𝗨𝗗𝗜𝗢 𝗥𝗘𝗔𝗗𝗬 〕━━━╮\n"
+                        "┃ 💜 Powered by ADMIN RAHMAN BOT\n"
+                        "┃ 🎵 Your MP3 is ready\n"
+                        "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
+                    )
+                )
+        else:
+            with open(file, "rb") as f:
+                await q.message.reply_video(
+                    video=f,
+                    caption=(
+                        "╭━━━〔 ✅ 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗 𝗖𝗢𝗠𝗣𝗟𝗘𝗧𝗘 〕━━━╮\n"
+                        "┃ 💜 Powered by ADMIN RAHMAN BOT\n"
+                        "┃ 🎬 Your video is ready\n"
+                        "╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
+                    )
+                )
 
         os.remove(file)
         await msg.delete()
 
-    except:
-        await msg.edit_text("❌ Failed")
+    except Exception as e:
+        await msg.edit_text("❌ Download failed\n\n" + str(e)[:200])
 
-# 🚀 RUN
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
